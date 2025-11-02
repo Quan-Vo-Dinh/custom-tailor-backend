@@ -1,4 +1,4 @@
-# Sequence diagram documents
+# Sequence diagram document
 
 **Ngày cập nhật:** 3/11/2025
 **Phiên bản:** 1.0
