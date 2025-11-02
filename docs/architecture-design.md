@@ -9,50 +9,7 @@
 
 Đây là sơ đồ ở mức cao (High-Level), mô tả các "thành phần" (Components) của toàn bộ hệ thống và cách chúng tương tác với nhau.
 
-```mermaid
-graph TD
-  subgraph Clients_NGUOIIDUNG["Clients (Người dùng)"]
-    direction TB
-    Client["Khách hàng (ReactJS App)"]
-    Admin["Quản trị viên (React Admin App)"]
-  end
-
-  subgraph Our_System["Hệ thống Tiệm may (Our System)"]
-    direction LR
-
-    subgraph Backend_App["Backend Application (NestJS)"]
-      direction TB
-      Backend["Modular Monolith (NestJS App)"]
-      API["API Gateway / Firewall (e.g. Nginx / Cloudflare)"]
-      API -->|HTTPS| Backend
-    end
-
-    subgraph Data_Stores["Data Stores"]
-      DB[(PostgreSQL DB — Dữ liệu chính)]
-      Cache[(Redis — Cache, Sessions, Booking Locks)]
-      Storage[(AWS S3 — Lưu trữ Ảnh / File)]
-    end
-
-    Backend -->|Read/Write| DB
-    Backend -->|Cache/Locks| Cache
-    Backend -->|Upload/Get URL| Storage
-  end
-
-  subgraph External["Dịch vụ Bên ngoài (External)"]
-    Payment["Payment Gateway (Sepay API)"]
-    Email["Email Service (Resend API)"]
-  end
-
-  Client -->|HTTPS/API Call| API
-  Admin -->|HTTPS/API Call| API
-  Client -->|Xem ảnh trực tiếp| Storage
-  Admin -->|Xem ảnh trực tiếp| Storage
-
-  Backend -->|API Call| Payment
-  Backend -->|Gửi mail| Email
-  Payment -->|Webhook| API
-
-```
+<img width="3167" height="1574" alt="image" src="https://github.com/user-attachments/assets/c048493e-7f12-4ca1-9ab7-4b0777eafc2f" />
 
 ---
 
