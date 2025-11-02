@@ -17,64 +17,9 @@ Tài liệu này tổng hợp các Sơ đồ Tuần tự (Sequence Diagram) cho 
 #### a. Mô tả Luồng
 Luồng này mô tả các tương tác chính giữa các "khối" (components) trong toàn bộ hệ thống khi một đơn hàng được xử lý, từ lúc khởi tạo đến lúc xác nhận.
 
-#### b. Sơ đồ 1 (Mermaid)
+#### b. Sơ đồ 1
 
-```mermaid
-sequenceDiagram
-    actor User as 👤 Khách hàng
-    participant App as 📱 Client App (React)
-    participant System as 🏭 Hệ thống Backend (NestJS)
-    participant Data as 💾 Data Stores (Postgres+Redis)
-    participant Sepay as 💳 Sepay API
-    participant Email as 📧 Email Service
-
-    User ->> App: 1. Gửi yêu cầu "Đặt hàng"
-    
-    activate App
-    App ->> System: 2. POST /orders (Gửi DTO)
-    deactivate App
-    
-    activate System
-    System ->> System: 3. Xử lý nghiệp vụ (Validate, Tính giá)
-    System ->> Sepay: 4. Yêu cầu tạo thanh toán
-    
-    activate Sepay
-    Sepay -->> System: 5. Trả về link thanh toán (paymentUrl)
-    deactivate Sepay
-    
-    System ->> Data: 6. Lưu Đơn hàng (Trạng thái: PENDING)
-    activate Data
-    Data -->> System: (Lưu thành công)
-    deactivate Data
-    
-    System -->> App: 7. Trả về link thanh toán (paymentUrl)
-    
-    activate App
-    App ->> Sepay: 8. Chuyển hướng User sang Sepay
-    deactivate App
-    deactivate System
-    
-    Note over User, Sepay: ... (User thanh toán trên trang Sepay) ...
-
-    Sepay ->> System: 9. [WEBHOOK] Gửi thông báo (Thanh toán thành công)
-    
-    activate System
-    System ->> System: 10. Xác thực Webhook
-    System ->> Data: 11. Cập nhật Đơn hàng (Trạng thái: CONFIRMED)
-    
-    activate Data
-    Data -->> System: (Cập nhật thành công)
-    deactivate Data
-    
-    System ->> Email: 12. Yêu cầu gửi mail xác nhận
-    
-    System -->> Sepay: 13. Phản hồi 200 OK (Đã nhận Webhook)
-    deactivate System
-    
-    activate Email
-    Email -->> User: 14. Gửi email
-    deactivate Email
-````
+<img width="3628" height="2206" alt="image" src="https://github.com/user-attachments/assets/9b48dab4-a66f-40ba-b5e1-cdfdce31383e" />
 
 #### c. Giải thích các bước quan trọng (Luồng 1)
 
@@ -91,46 +36,10 @@ sequenceDiagram
 
 Luồng này mô tả cách hệ thống xử lý một yêu cầu đặt lịch hẹn, tập trung vào việc "hỏi" và "nhận" phản hồi từ kho dữ liệu để giải quyết bài toán "đặt trùng" (concurrency).
 
-#### b. Sơ đồ 2 (Mermaid)
+#### b. Sơ đồ 2 
 
-```mermaid
-sequenceDiagram
-    actor User as 👤 Khách hàng
-    participant App as 📱 Client App (React)
-    participant System as 🏭 Hệ thống Backend (NestJS)
-    participant Data as 💾 Data Stores (Postgres+Redis)
-    participant Email as 📧 Email Service
+<img width="3120" height="1688" alt="image" src="https://github.com/user-attachments/assets/a979f884-1acd-4dc5-b34b-d9964eba60c6" />
 
-    User ->> App: 1. Gửi yêu cầu "Đặt lịch"
-    
-    activate App
-    App ->> System: 2. POST /appointments (Gửi DTO)
-    deactivate App
-    
-    activate System
-    System ->> Data: 3. [Khóa & Kiểm tra] Slot (Check Redis & DB)
-    
-    activate Data
-    alt [Case 1: Slot HỢP LỆ (Còn trống)]
-        Data -->> System: 4a. (Xác nhận slot OK)
-        System ->> Data: 5a. Lưu Lịch hẹn (Trạng thái: PENDING)
-        Data -->> System: (Lưu thành công)
-        
-        System -->> App: 6a. Trả về 201 Created (Thành công)
-        
-        System ->> Email: 7a. Yêu cầu gửi mail thông báo
-        activate Email
-        Email -->> User: 8a. Gửi email
-        deactivate Email
-
-    else [Case 2: Slot KHÔNG HỢP LỆ (Bị khóa / Đã đặt)]
-        Data -->> System: 4b. (Từ chối: Slot bận)
-        System -->> App: 5b. Trả về 4xx Error (Conflict / Busy)
-    end
-    
-    deactivate Data
-    deactivate System
-```
 
 #### c. Giải thích các bước quan trọng (Luồng 2)
 
@@ -151,43 +60,10 @@ sequenceDiagram
 
 Luồng này mô tả trải nghiệm của **Khách hàng (User)** và các hành động của **Ứng dụng React (React App)** khi người dùng thực hiện đặt hàng. Nó tập trung vào việc "gọi" API và "chuyển hướng" (redirect) trang.
 
-#### b. Sơ đồ 1 (Mermaid)
+#### b. Sơ đồ 1
 
-```mermaid
-sequenceDiagram
-    actor User as 👤 Khách hàng
-    participant App as ⚛️ React App (Browser)
-    participant API as ☁️ Backend API
-    participant Sepay as 💳 Trang Sepay
+<img width="2908" height="1804" alt="image" src="https://github.com/user-attachments/assets/af03c990-db65-45d7-a6cd-4ee9dda763b2" />
 
-    User ->> App: 1. Nhấn nút "Xác nhận Đặt hàng"
-    
-    activate App
-    App ->> App: 2. Hiển thị Spinner (Loading...)
-    App ->> API: 3. Gửi Yêu cầu (POST /orders)
-    
-    activate API
-    Note over API: ... (Backend đang xử lý nghiệp vụ, <br> check giá, gọi Sepay, lưu DB...)
-    API -->> App: 4. Trả về 201 Created (chứa "paymentUrl")
-    deactivate API
-    
-    App ->> App: 5. Ẩn Spinner
-    App ->> Sepay: 6. [CHUYỂN HƯỚNG] <br> window.location.href = "paymentUrl"
-    deactivate App
-    
-    Note over User, Sepay: ... (User thực hiện thanh toán trên trang Sepay) ...
-    
-    %% Sau khi thanh toán, Sepay chuyển hướng User TRỞ LẠI app của mình
-    Sepay ->> App: 7. [CHUYỂN HƯỚNG] <br> Về trang /orders/success?orderId=123
-    
-    activate App
-    App ->> App: 8. Hiển thị Trang "Đặt hàng thành công!"
-    
-    %% Đây là 1 luồng bất đồng bộ, client không "chờ" nó
-    participant Email as 📧 Email Service
-    Email -->> User: (User nhận được email xác nhận)
-    deactivate App
-```
 
 #### c. Giải thích các bước quan trọng (Luồng 1)
 
@@ -204,45 +80,10 @@ sequenceDiagram
 
 Luồng này mô tả cách **React App** xử lý các phản hồi (responses) khác nhau từ Backend khi đặt lịch hẹn, đặc biệt là các lỗi "va chạm" (conflict).
 
-#### b. Sơ đồ 2 (Mermaid)
+#### b. Sơ đồ 2
 
-```mermaid
-sequenceDiagram
-    actor User as 👤 Khách hàng
-    participant App as ⚛️ React App (Browser)
-    participant API as ☁️ Backend API
+<img width="2864" height="2394" alt="image" src="https://github.com/user-attachments/assets/d40a0cdf-d9f1-4857-b046-a77d3823da1c" />
 
-    User ->> App: 1. Chọn slot & Nhấn "Xác nhận Đặt lịch"
-    
-    activate App
-    App ->> App: 2. Hiển thị Spinner (Đang giữ chỗ...)
-    App ->> API: 3. Gửi Yêu cầu (POST /appointments)
-    
-    activate API
-    Note over API: ... (Backend đang xử lý nghiệp vụ, <br> check Redis, check DB...)
-    
-    alt [Case 1: THÀNH CÔNG]
-        API -->> App: 4a. Trả về 201 Created
-        App ->> App: 5a. Ẩn Spinner
-        App ->> User: 6a. Hiển thị Thông báo (Đặt lịch thành công!)
-        
-        participant Email as 📧 Email Service
-        Email -->> User: (User nhận được email chờ duyệt)
-
-    else [Case 2: LỖI - Bị người khác "nẫng" mất]
-        API -->> App: 4b. Trả về 409 Conflict
-        App ->> App: 5b. Ẩn Spinner
-        App ->> User: 6b. Hiển thị Lỗi (Slot này vừa bị đặt mất. Vui lòng chọn slot khác!)
-
-    else [Case 3: LỖI - Đang có người "giữ" slot]
-        API -->> App: 4c. Trả về 429 Too Many Requests
-        App ->> App: 5c. Ẩn Spinner
-        App ->> User: 6c. Hiển thị Lỗi (Slot này đang được giữ. Vui lòng thử lại sau 10 giây!)
-    end
-    
-    deactivate API
-    deactivate App
-```
 
 #### c. Giải thích các bước quan trọng (Luồng 2)
 
@@ -268,75 +109,11 @@ Luồng này bao gồm 2 phần:
 1.  **Request (Yêu cầu):** Client gửi `POST /orders`, Backend xử lý, tạo đơn hàng (trạng thái `Pending`) và trả về link thanh toán Sepay.
 2.  **Webhook (Gọi ngược):** Sau khi khách thanh toán bên Sepay, Sepay sẽ "gọi ngược" vào `POST /payments/webhook` của Backend để thông báo. Backend sẽ cập nhật trạng thái đơn hàng (sang `Confirmed`) và gửi email.
 
-#### b. Sơ đồ 1 (Mermaid)
+#### b. Sơ đồ 1 
 
-```mermaid
-sequenceDiagram
-    actor Client as 👤 Khách hàng
-    participant API as 🧱 API Gateway
-    participant Backend as 🧠 Backend (NestJS)
-    participant DB as 🗄️ PostgreSQL
-    participant Sepay as 💳 Sepay API
-    participant Email as 📧 Email Service
+<img width="3334" height="3638" alt="image" src="https://github.com/user-attachments/assets/896b3107-cb31-4956-8f0f-5c4acd002d07" />
 
-    %% Phần 1: Khách hàng tạo đơn hàng
-    Client ->> API: POST /orders (Gửi Order DTO)
-    API ->> Backend: POST /orders (Gửi Order DTO)
-    
-    activate Backend
-    Backend ->> Backend: 1. Validate DTO (class-validator)
-    
-    %% Backend check giá và sản phẩm
-    Backend ->> DB: 2. Lấy thông tin (giá, vải...)
-    DB -->> Backend: (Chi tiết sản phẩm, giá)
-    
-    Backend ->> Backend: 3. Tính tổng tiền (totalPrice)
-    
-    %% Backend gọi Sepay để tạo "ý định thanh toán"
-    Backend ->> Sepay: 4. createPaymentIntent(totalPrice)
-    Sepay -->> Backend: (paymentUrl, paymentId)
-    
-    %% Bắt đầu giao dịch Database
-    par
-        Backend ->> DB: 5. [TRANSACTION] Bắt đầu
-        DB ->> DB: 6. create Order (status: PENDING)
-        DB ->> DB: 7. create OrderItems (snapshot số đo, vải...)
-        DB ->> DB: 8. create Payment (paymentId, status: PENDING)
-        Backend ->> DB: 9. [TRANSACTION] Commit
-    end
-    
-    Backend -->> Client: 201 Created (Trả về paymentUrl)
-    deactivate Backend
-    
-    Client ->> Client: 10. Chuyển hướng sang trang Sepay...
-    
-    %% ... Khách hàng thanh toán trên trang Sepay ...
-    
-    %% Phần 2: Sepay gọi Webhook báo thanh toán thành công
-    Note over Client, Email: ... (Khách thanh toán thành công) ...
-    
-    Sepay ->> API: 11. POST /payments/webhook (Báo thành công)
-    API ->> Backend: POST /payments/webhook
-    
-    activate Backend
-    Backend ->> Backend: 12. Xác thực Chữ ký Webhook (Quan trọng!)
-    
-    %% Bắt đầu giao dịch Database thứ 2
-    par
-        Backend ->> DB: 13. [TRANSACTION] Bắt đầu
-        DB ->> DB: 14. update Order (status: CONFIRMED)
-        DB ->> DB: 15. update Payment (status: SUCCESS)
-        Backend ->> DB: 16. [TRANSACTION] Commit
-    end
-    
-    %% Sau khi DB thành công, mới gửi mail
-    Backend ->> Email: 17. Gửi email xác nhận đơn hàng
-    
-    Backend -->> Sepay: 200 OK (Phản hồi Webhook)
-    deactivate Backend
-    
-    Email -->> Client: (Khách nhận được mail)
-```
+
 
 #### c. Giải thích các bước quan trọng (Luồng 1)
 
@@ -358,65 +135,9 @@ sequenceDiagram
 
 Vấn đề lớn nhất ở đây là **Concurrency (Đồng thời)**: Nếu 2 người cùng nhấn đặt slot 10:00 *cùng một lúc*, hệ thống phải đảm bảo chỉ 1 người thành công. Chúng ta sẽ dùng **Redis** để "khóa" (Distributed Lock) slot này lại.
 
-#### b. Sơ đồ 2 (Mermaid)
+#### b. Sơ đồ 2 
+<img width="3955" height="2822" alt="image" src="https://github.com/user-attachments/assets/a731ffcb-7a53-4f47-a85d-124cba06565a" />
 
-```mermaid
-sequenceDiagram
-    actor Client as 👤 Khách hàng
-    participant API as 🧱 API Gateway
-    participant Backend as 🧠 Backend (NestJS)
-    participant Cache as ⚡ Redis
-    participant DB as 🗄️ PostgreSQL
-    participant Email as 📧 Email Service
-
-    Client ->> API: POST /appointments (Gửi DTO: { slot: "10:00-T7" })
-    API ->> Backend: POST /appointments (Gửi DTO)
-    
-    activate Backend
-    Backend ->> Backend: 1. Validate DTO (class-validator)
-    
-    %% Tạo 1 cái "khóa" (key) duy nhất cho slot này
-    Backend ->> Backend: 2. Tạo lock key (ví dụ: "lock:appt:10:00-T7")
-    
-    %% Thử "chiếm" cái khóa này trên Redis
-    Backend ->> Cache: 3. SETNX lock:appt:10:00-T7 (Đặt khóa, hết hạn sau 10s)
-    
-    alt [KHÓA THẤT BẠI (SETNX trả về 0)]
-        Cache -->> Backend: 4a. Thất bại (Slot đã bị khóa)
-        Backend -->> Client: 429 Too Many Requests (Slot đang được giữ, thử lại sau)
-    
-    else [KHÓA THÀNH CÔNG (SETNX trả về 1)]
-        Cache -->> Backend: 4b. Khóa thành công!
-        
-        %% Đã khóa được Redis, giờ check DB
-        Backend ->> DB: 5. Check slot này trong DB (Đã có ai đặt "cứng" chưa?)
-        DB -->> Backend: (Kết quả query)
-        
-        opt [Slot đã tồn tại trong DB]
-            Backend -->> Client: 409 Conflict (Slot đã bị đặt)
-            %% Phải nhớ nhả khóa Redis ra
-            Backend ->> Cache: (DELETE lock:appt:10:00-T7)
-        end
-        
-        %% Nếu DB trống -> Tạo lịch hẹn
-        par
-            Backend ->> DB: 6. [TRANSACTION] Bắt đầu
-            DB ->> DB: 7. create Appointment (status: PENDING)
-            Backend ->> DB: 8. [TRANSACTION] Commit
-        end
-        
-        Backend -->> Client: 201 Created (Đặt lịch thành công, chờ xác nhận)
-        deactivate Backend
-        
-        %% Gửi mail (bất đồng bộ)
-        Backend ->> Email: 9. Gửi mail thông báo (chờ Admin duyệt)
-        Email -->> Client: (Khách nhận được mail)
-
-        %% Cuối cùng, nhả khóa Redis
-        Backend ->> Cache: 10. DELETE lock:appt:10:00-T7
-        
-    end
-```
 
 #### c. Giải thích các bước quan trọng (Luồng 2)
 
