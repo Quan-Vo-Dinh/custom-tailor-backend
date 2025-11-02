@@ -1,5 +1,4 @@
-# Tài liệu Phân tích Nghiệp vụ (Business Analysis Document)
-# Dự án: Hệ thống Đặt may Trang phục Trực tuyến
+# Business Analysis Document
 
 **Ngày cập nhật:** 2/11/2025
 **Phiên bản:** 1.0
