@@ -3,13 +3,9 @@
 
 **Ngày cập nhật:** 3/11/2025
 
-**Phiên bản:** 1.0
+**Phiên bản:** 1.1
 
 ---
-
-**link dbml: https://dbdocs.io/vodinhquan2707.it/custom-tailor**
-<img width="1427" height="1168" alt="Untitled" src="https://github.com/user-attachments/assets/8ca2e810-312a-477f-af3f-3c5d7acc5cdf" />
-
 
 ## 1. Sơ đồ Quan hệ Thực thể (ERD)
 
@@ -184,7 +180,15 @@ erDiagram
 
 -----
 
-## 2\. Giải thích các Bảng & Quyết định Thiết kế
+
+
+## 2\. Database dự kiến:
+
+**link dbml: https://dbdocs.io/vodinhquan2707.it/custom-tailor**
+
+<img width="1427" height="1168" alt="Untitled" src="https://github.com/user-attachments/assets/8ca2e810-312a-477f-af3f-3c5d7acc5cdf" />
+
+## 3\. Giải thích các Bảng & Quyết định Thiết kế
 
 ### 1. Domain: Quản lý Người dùng & Xác thực
 
@@ -291,4 +295,3 @@ Nhóm thực thể "nóng", lưu trữ toàn bộ lịch sử giao dịch và c�
     * `staffId` (FK, nullable): Nhân viên được gán để tiếp khách (nếu có).
     * `status` (Enum): Trạng thái lịch hẹn (`PENDING`, `CONFIRMED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`).
     * `startTime`, `endTime`: Thời gian bắt đầu và kết thúc của slot hẹn.
-```
