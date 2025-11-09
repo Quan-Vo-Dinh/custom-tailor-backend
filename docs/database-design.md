@@ -184,7 +184,10 @@ erDiagram
 
 ## 2\. Database dự kiến:
 
-**link dbml: https://dbdocs.io/vodinhquan2707.it/custom-tailor**
+**Link dbml:**
+* **https://dbdocs.io/vodinhquan2707.it/custom-tailor**
+* **https://dbdiagram.io/d/custom-tailor-691050826735e11170e7e52d**
+
 
 <img width="1427" height="1168" alt="Untitled" src="https://github.com/user-attachments/assets/8ca2e810-312a-477f-af3f-3c5d7acc5cdf" />
 
@@ -200,7 +203,7 @@ Nhóm thực thể này chịu trách nhiệm lưu trữ thông tin định danh
     * `id` (PK): Khóa chính, định danh duy nhất cho mỗi người dùng.
     * `email` (UK): Email đăng nhập, bắt buộc là duy nhất (Unique Key).
     * `passwordHash`: Chỉ lưu trữ mật khẩu đã được "băm" (hashed), không bao giờ lưu mật khẩu gốc (plain text).
-    * `role` (Enum): Cột "sống còn" cho việc Phân quyền (RBAC). Giá trị có thể là `CUSTOMER`, `ADMIN`, `STAFF`.
+    * `role` (Enum): Cột cho việc Phân quyền (RBAC). Giá trị có thể là `CUSTOMER`, `ADMIN`, `STAFF`.
     * `provider`: Xác định tài khoản này được tạo qua kênh nào (ví dụ: `EMAIL` hoặc `GOOGLE`) để xử lý logic đăng nhập OAuth.
 
 #### 1.2. Bảng `Profile`
@@ -216,7 +219,7 @@ Nhóm thực thể này chịu trách nhiệm lưu trữ thông tin định danh
     * `isDefault` (Boolean): Một cờ (flag) để xác định đâu là địa chỉ mặc định sẽ được ưu tiên hiển thị khi thanh toán.
 
 #### 1.4. Bảng `Measurement`
-* **Mục đích:** Một trong những bảng quan trọng nhất. Cho phép người dùng lưu trữ nhiều "bộ số đo" khác nhau (ví dụ: "Số đo mặc Vest", "Số đo Sơ mi T10/2025").
+* **Mục đích:** Lưu trữ nhiều "bộ số đo" khác nhau cho từng người dùng (ví dụ: "Số đo mặc Vest", "Số đo Sơ mi T10/2025").
 * **Giải thích các cột chính:**
     * `userId` (FK): Cho biết bộ số đo này của ai (quan hệ 1-N).
     * `name`: Tên định danh cho bộ số đo (do người dùng tự đặt).
@@ -237,7 +240,7 @@ Nhóm thực thể này định nghĩa "danh mục" (catalog) sản phẩm. Do �
     * `basePrice` (Decimal): Giá "cơ sở" hay "giá gốc" của mẫu này *trước khi* người dùng chọn các tùy chọn (vải, kiểu...).
 
 #### 2.3. Bảng `Fabric` và `StyleOption`
-* **Mục đích:** Đây là các bảng "master data" (dữ liệu gốc) cho các tùy chọn.
+* **Mục đích:** Các bảng "master data" (dữ liệu gốc) cho các tùy chọn.
     * `Fabric`: Lưu danh sách các loại vải (Lụa, Kaki...).
     * `StyleOption`: Lưu các kiểu dáng (Cổ Đức, Cổ Tàu, Tay măng-séc...).
 * **Giải thích các cột chính:**
@@ -252,7 +255,7 @@ Nhóm thực thể này định nghĩa "danh mục" (catalog) sản phẩm. Do �
 
 ### 3. Domain: Quản lý Đơn hàng & Thanh toán
 
-Nhóm thực thể "nóng", lưu trữ toàn bộ lịch sử giao dịch và các thông tin "bất biến" (immutable) tại thời điểm đặt hàng.
+Nhóm thực thể Bussiness Logic chính, lưu trữ toàn bộ lịch sử giao dịch và các thông tin "bất biến" (immutable) tại thời điểm đặt hàng.
 
 #### 3.1. Bảng `Order`
 * **Mục đích:** Lưu thông tin "chung" (header) của một đơn hàng.
