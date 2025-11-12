@@ -69,18 +69,17 @@ services:
   email-preview:
     image: node:20-alpine
     container_name: custom_tailor_email_preview
-    working_dir: /app
+    working_dir: /workspace
     ports:
       - "3002:3000"
     volumes:
-      - ./emails:/app/emails:ro
-      - ./package.json:/app/package.json:ro
-      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml:ro
+      - ./emails:/workspace/emails:ro
     command: >
-      sh -c "echo 'Installing packages for email preview...' && \
-             npm ci --no-audit --no-fund --silent || npm install --no-audit --no-fund --silent && \
-             echo '📧 Email Preview starting at http://localhost:3000 (exposed on host:3002)' && \
-             npx @react-email/preview-server --dir=emails --port=3000 --open=false"
+      sh -c "echo '📧 Installing email preview packages...' && \
+             npm init -y && \
+             npm install react-email@3.0.3 react@19.2.0 react-dom@19.2.0 @react-email/components@1.0.0 --loglevel=error && \
+             echo '✅ Starting Email Preview at http://localhost:3000 (exposed on host:3002)' && \
+             npx react-email dev --dir=emails --port=3000"
     profiles:
       - email # Only start when explicitly requested
 

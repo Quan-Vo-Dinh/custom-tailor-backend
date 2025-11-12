@@ -86,6 +86,7 @@ docker compose --profile email up email-preview -d
 # Access at: http://localhost:3002
 ```
 
+![alt text](image-3.png)
 **Hoặc không dùng Docker:**
 
 ```bash
