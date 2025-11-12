@@ -42,6 +42,8 @@ docker compose up -d
 
 **✅ Xong!** Backend đã sẵn sàng cho frontend development.
 
+![alt text](image-2.png)
+
 ---
 
 ## 📚 Sử dụng API

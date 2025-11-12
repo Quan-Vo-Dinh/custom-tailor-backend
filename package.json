@@ -5,7 +5,7 @@
   "description": "Custom Tailor Backend System - NestJS + Prisma + PostgreSQL",
   "scripts": {
     "build": "nest build",
-    "email:dev": "email dev",
+    "email:dev": "npx @react-email/preview-server --dir=emails --port=3000",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "prisma:generate": "prisma generate",
