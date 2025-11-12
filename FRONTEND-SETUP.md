@@ -5,8 +5,9 @@ Hướng dẫn siêu đơn giản để chạy Backend API cho frontend developm
 ## ✅ Yêu cầu
 
 Chỉ cần cài **Docker Desktop**:
+
 - **Windows/Mac**: [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
-- **Linux**: 
+- **Linux**:
   ```bash
   curl -fsSL https://get.docker.com -o get-docker.sh
   sudo sh get-docker.sh
@@ -54,6 +55,7 @@ Mở trình duyệt: **http://localhost:3001/api/docs**
 Hầu hết APIs yêu cầu JWT token:
 
 **1. Đăng ký tài khoản:**
+
 ```bash
 curl -X POST http://localhost:3001/auth/sign-up \
   -H "Content-Type: application/json" \
@@ -66,6 +68,7 @@ curl -X POST http://localhost:3001/auth/sign-up \
 ```
 
 **2. Đăng nhập:**
+
 ```bash
 curl -X POST http://localhost:3001/auth/sign-in \
   -H "Content-Type: application/json" \
@@ -76,6 +79,7 @@ curl -X POST http://localhost:3001/auth/sign-in \
 ```
 
 Response sẽ trả về `accessToken`:
+
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -84,6 +88,7 @@ Response sẽ trả về `accessToken`:
 ```
 
 **3. Sử dụng token trong requests:**
+
 ```bash
 curl -X GET http://localhost:3001/auth/me \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
@@ -118,12 +123,14 @@ docker compose ps
 ## 📋 Available APIs
 
 ### ✅ Auth Module (Hoàn thành)
+
 - `POST /auth/sign-up` - Đăng ký
 - `POST /auth/sign-in` - Đăng nhập
 - `POST /auth/refresh` - Refresh token
 - `GET /auth/me` - Thông tin user hiện tại
 
 ### 🚧 Coming Soon
+
 - Users API - Quản lý profile, địa chỉ, số đo
 - Products API - Sản phẩm, vải, style options
 - Orders API - Đơn hàng, thanh toán, reviews
@@ -138,6 +145,7 @@ docker compose ps
 **Lỗi:** `Bind for 0.0.0.0:3001 failed: port is already allocated`
 
 **Giải pháp 1:** Dừng process đang dùng port 3001
+
 ```bash
 # Linux/Mac
 lsof -ti:3001 | xargs kill -9
@@ -148,11 +156,12 @@ taskkill /PID <PID_NUMBER> /F
 ```
 
 **Giải pháp 2:** Đổi port trong `docker-compose.yml`
+
 ```yaml
 services:
   app:
     ports:
-      - "3002:3001"  # Đổi thành port 3002
+      - "3002:3001" # Đổi thành port 3002
 ```
 
 ### Backend không khởi động
@@ -210,8 +219,7 @@ curl http://localhost:3001/auth/me \
 
 ## 📞 Cần hỗ trợ?
 
-- Swagger API Docs: http://localhost:3001/api/docs
-- GitHub Issues: [Report a bug](https://github.com/Quan-Vo-Dinh/custom-tailor-backend/issues)
+- Email hoặc nhắn tin cho tớ nhé ^^
 
 ---
 

@@ -40,15 +40,52 @@ custom-tailor-server/
 └── package.json           # Dependencies & scripts
 ```
 
-## 📋 Yêu cầu hệ thống (BẮT BUỘC PHẢI CÓ 3 CÁI ĐẦU TIÊN)
+## 📋 Yêu cầu hệ thống
 
+### 🐳 Option 1: Docker (Recommended - Cho Frontend Team)
+- **Docker Desktop**: >= 20.x
+- **Docker Compose**: >= 2.x
+
+➡️ **[Xem hướng dẫn nhanh cho Frontend Team](./FRONTEND-SETUP.md)**
+
+### 💻 Option 2: Local Development (Cho Backend Contributors)
 - **Node.js**: >= 18.x (Recommended: 20.x LTS)
 - **PostgreSQL**: >= 14.x
 - **pnpm**: >= 8.x
 - **Redis**: >= 6.x (Optional, dùng cho caching)
-- _Note: Nếu chưa có thì lên trang chủ của từng công nghệ để tải và cài đặt_
 
-## ⚙️ Cài đặt
+---
+
+## 🚀 Quick Start với Docker
+
+### Dành cho Frontend Team (Chỉ cần test API)
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Quan-Vo-Dinh/custom-tailor-backend.git
+cd custom-tailor-backend
+
+# 2. Khởi động Backend
+docker compose up -d
+
+# ✅ Xong! API sẵn sàng tại:
+# - API: http://localhost:3001
+# - Swagger Docs: http://localhost:3001/api/docs
+```
+
+**Các commands cơ bản:**
+```bash
+docker compose up -d      # Khởi động
+docker compose logs -f    # Xem logs
+docker compose down       # Dừng lại
+docker compose ps         # Kiểm tra status
+```
+
+➡️ **Chi tiết hơn**: Xem file [FRONTEND-SETUP.md](./FRONTEND-SETUP.md)
+
+---
+
+## ⚙️ Cài đặt Local (Không dùng Docker)
 
 ### 1. Clone repository
 
@@ -98,8 +135,6 @@ NODE_ENV="development"
 
 ### 4. Thiết lập PostgreSQL Database
 
-#### Option 1: PostgreSQL Local
-
 ```bash
 # Cài đặt PostgreSQL
 sudo apt install postgresql postgresql-contrib
@@ -112,46 +147,7 @@ GRANT ALL PRIVILEGES ON DATABASE custom_tailor_db TO your_user;
 \q
 ```
 
-#### Option 2: Docker
-
-```bash
-# Tạo file docker-compose.yml
-cat > docker-compose.yml << 'EOF'
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: custom_tailor_postgres
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: custom_tailor_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7-alpine
-    container_name: custom_tailor_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-
-volumes:
-  postgres_data:
-  redis_data:
-EOF
-
-# Chạy Docker containers
-docker-compose up -d
-```
-
-#### Option 3: Cloud Database (Neon, Supabase, Railway)
-
-Cập nhật `DATABASE_URL` trong `.env` với connection string từ cloud provider.
+**Hoặc dùng Cloud Database:** Neon, Supabase, Railway - cập nhật `DATABASE_URL` trong `.env`
 
 ### 5. Chạy Prisma Migrations
 
@@ -291,8 +287,6 @@ Truy cập `http://localhost:3000` để xem preview tất cả email templates.
 - ✅ Environment configuration
 
 ## 🚧 Coming Soon
-
-Các modules sau đang được phát triển:
 
 - 🚧 **Users Module** - Quản lý profile, địa chỉ, số đo
 - 🚧 **Products Module** - Sản phẩm, vải, style options
