@@ -73,7 +73,30 @@ Mở trình duyệt: **http://localhost:3001/api/docs**
 
 ---
 
-2. Hoặc dùng Swagger UI trực tiếp: `http://localhost:3001/api/docs`
+## 📧 Xem Email Templates (Optional)
+
+Nếu muốn xem preview các email templates (appointment confirmation, order status, etc.):
+
+```bash
+# Start email preview service
+docker compose --profile email up email-preview -d
+
+# Access at: http://localhost:3002
+```
+
+**Hoặc không dùng Docker:**
+
+```bash
+# Chạy trực tiếp từ source code
+pnpm run email:dev
+# Access at: http://localhost:3000
+```
+
+Để tắt:
+
+```bash
+docker compose stop email-preview
+```
 
 ---
 

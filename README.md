@@ -84,6 +84,15 @@ docker compose down       # Dừng lại
 docker compose ps         # Kiểm tra status
 ```
 
+**Xem Email Templates (Optional):**
+
+```bash
+# Start email preview service
+docker compose --profile email up email-preview -d
+
+# Access at: http://localhost:3002
+```
+
 ➡️ **Chi tiết hơn**: Xem file [FRONTEND-SETUP.md](./FRONTEND-SETUP.md)
 
 ---
