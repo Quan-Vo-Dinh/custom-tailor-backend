@@ -44,10 +44,17 @@ COPY package.json pnpm-lock.yaml ./
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
 
+# Copy Prisma schema before generating client
+COPY --from=builder /app/prisma ./prisma
+
+# Install Prisma CLI temporarily to generate client in production stage
+RUN pnpm add -D prisma
+
+# Generate Prisma Client in production environment
+RUN pnpm exec prisma generate
+
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/prisma ./prisma
 
 # Copy email templates
 COPY emails ./emails
