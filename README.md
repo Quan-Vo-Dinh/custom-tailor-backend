@@ -43,12 +43,14 @@ custom-tailor-server/
 ## 📋 Yêu cầu hệ thống
 
 ### 🐳 Option 1: Docker (Recommended - Cho Frontend Team)
+
 - **Docker Desktop**: >= 20.x
 - **Docker Compose**: >= 2.x
 
 ➡️ **[Xem hướng dẫn nhanh cho Frontend Team](./FRONTEND-SETUP.md)**
 
-### 💻 Option 2: Local Development (Cho Backend Contributors)
+### 💻 Option 2: Local Development
+
 - **Node.js**: >= 18.x (Recommended: 20.x LTS)
 - **PostgreSQL**: >= 14.x
 - **pnpm**: >= 8.x
@@ -74,6 +76,7 @@ docker compose up -d
 ```
 
 **Các commands cơ bản:**
+
 ```bash
 docker compose up -d      # Khởi động
 docker compose logs -f    # Xem logs
