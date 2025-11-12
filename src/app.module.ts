@@ -21,12 +21,12 @@ import { RolesGuard } from "./auth/guards/roles.guard";
     CacheModule,
     PrismaModule,
     AuthModule,
-    UsersModule,
-    ProductsModule,
-    OrdersModule,
-    AppointmentsModule,
+    // UsersModule,
+    // ProductsModule,
+    // OrdersModule,
+    // AppointmentsModule,
     NotificationsModule,
-    AdminModule,
+    // AdminModule,
   ],
   providers: [
     {
