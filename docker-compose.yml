@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: custom_tailor_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: custom_tailor_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - custom_tailor_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: custom_tailor_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - custom_tailor_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: custom_tailor_app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/custom_tailor_db?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-jwt-secret-key-for-frontend-testing-only-change-in-production
+      JWT_EXPIRATION: 7d
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      FRONTEND_URL: http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - custom_tailor_network
+    command: sh -c "
+      echo '🚀 Starting Custom Tailor Backend API...' &&
+      echo '⏳ Running database migrations...' &&
+      npx prisma migrate deploy &&
+      echo '✅ Backend ready at http://localhost:3001' &&
+      echo '📚 Swagger docs: http://localhost:3001/api/docs' &&
+      node dist/main.js
+      "
+
+networks:
+  custom_tailor_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
