@@ -19,21 +19,21 @@ Backend API cho hệ thống E-commerce May Đo (Custom Tailor Platform) đượ
 ```
 custom-tailor-server/
 ├── src/
-│   ├── auth/               # ✅ Xác thực & phân quyền (JWT, Guards, Strategies)
-│   ├── cache/              # ✅ Redis cache service
-│   ├── common/             # ✅ Utilities, filters, interceptors, constants
-│   ├── notifications/      # ✅ Email notifications (Resend + React Email)
-│   ├── prisma/             # ✅ Prisma service & configuration
-│   ├── users/              # 🚧 Quản lý người dùng (Coming soon)
-│   ├── products/           # 🚧 Quản lý sản phẩm (Coming soon)
-│   ├── orders/             # 🚧 Quản lý đơn hàng (Coming soon)
-│   ├── appointments/       # 🚧 Quản lý lịch hẹn (Coming soon)
-│   ├── admin/              # 🚧 Quản lý admin (Coming soon)
+│   ├── admin/              # Quản lý admin (dashboard, reports)
+│   ├── appointments/       # Quản lý lịch hẹn đo đạc
+│   ├── auth/               # Xác thực & phân quyền (JWT, Guards, Strategies)
+│   ├── cache/              # Redis cache service
+│   ├── common/             # Utilities, filters, interceptors, constants
+│   ├── notifications/      # Email notifications (Resend + React Email)
+│   ├── orders/             # Quản lý đơn hàng, thanh toán, review
+│   ├── prisma/             # Prisma service & configuration
+│   ├── products/           # Quản lý sản phẩm, vải, style options
+│   ├── users/              # Quản lý người dùng, địa chỉ, số đo
 │   ├── app.module.ts       # Root module
 │   └── main.ts             # Entry point & Swagger setup
 ├── prisma/
 │   └── schema.prisma       # Database schema
-├── emails/                 # ✅ React Email templates
+├── emails/                 # React Email templates
 ├── docs/                   # Documentation
 ├── .env.example           # Environment variables template
 ├── tsconfig.json          # TypeScript configuration
@@ -42,62 +42,12 @@ custom-tailor-server/
 
 ## 📋 Yêu cầu hệ thống
 
-### 🐳 Option 1: Docker (Recommended - Cho Frontend Team)
-
-- **Docker Desktop**: >= 20.x
-- **Docker Compose**: >= 2.x
-
-➡️ **[Xem hướng dẫn nhanh cho Frontend Team](./FRONTEND-SETUP.md)**
-
-### 💻 Option 2: Local Development
-
 - **Node.js**: >= 18.x (Recommended: 20.x LTS)
 - **PostgreSQL**: >= 14.x
-- **pnpm**: >= 8.x
 - **Redis**: >= 6.x (Optional, dùng cho caching)
+- **pnpm**: >= 8.x (hoặc npm/yarn)
 
----
-
-## 🚀 Quick Start với Docker
-
-### Dành cho Frontend Team (Chỉ cần test API)
-
-```bash
-# 1. Clone repository
-git clone https://github.com/Quan-Vo-Dinh/custom-tailor-backend.git
-cd custom-tailor-backend
-
-# 2. Khởi động Backend
-docker compose up -d
-
-# ✅ Xong! API sẵn sàng tại:
-# - API: http://localhost:3001
-# - Swagger Docs: http://localhost:3001/api/docs
-```
-
-**Các commands cơ bản:**
-
-```bash
-docker compose up -d      # Khởi động
-docker compose logs -f    # Xem logs
-docker compose down       # Dừng lại
-docker compose ps         # Kiểm tra status
-```
-
-**Xem Email Templates (Optional):**
-
-```bash
-# Start email preview service
-docker compose --profile email up email-preview -d
-
-# Access at: http://localhost:3002
-```
-
-➡️ **Chi tiết hơn**: Xem file [FRONTEND-SETUP.md](./FRONTEND-SETUP.md)
-
----
-
-## ⚙️ Cài đặt Local (Không dùng Docker)
+## ⚙️ Cài đặt
 
 ### 1. Clone repository
 
@@ -109,8 +59,14 @@ cd custom-tailor-backend
 ### 2. Cài đặt dependencies
 
 ```bash
-# Sử dụng pnpm
+# Sử dụng pnpm (recommended)
 pnpm install
+
+# Hoặc npm
+npm install
+
+# Hoặc yarn
+yarn install
 ```
 
 ### 3. Cấu hình biến môi trường
@@ -147,6 +103,8 @@ NODE_ENV="development"
 
 ### 4. Thiết lập PostgreSQL Database
 
+#### Option 1: PostgreSQL Local
+
 ```bash
 # Cài đặt PostgreSQL
 sudo apt install postgresql postgresql-contrib
@@ -159,7 +117,46 @@ GRANT ALL PRIVILEGES ON DATABASE custom_tailor_db TO your_user;
 \q
 ```
 
-**Hoặc dùng Cloud Database:** Neon, Supabase, Railway - cập nhật `DATABASE_URL` trong `.env`
+#### Option 2: Docker
+
+```bash
+# Tạo file docker-compose.yml
+cat > docker-compose.yml << 'EOF'
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: custom_tailor_postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: custom_tailor_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: custom_tailor_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+EOF
+
+# Chạy Docker containers
+docker-compose up -d
+```
+
+#### Option 3: Cloud Database (Neon, Supabase, Railway)
+
+Cập nhật `DATABASE_URL` trong `.env` với connection string từ cloud provider.
 
 ### 5. Chạy Prisma Migrations
 
@@ -226,85 +223,64 @@ http://localhost:3001/api/docs
 - ✅ Example values
 - ✅ Role-based access documentation
 
-## ✅ Implemented Features
+### API Endpoints Overview:
 
-### 🔐 Auth Module (Completed)
+| Module       | Base URL        | Description                    |
+| ------------ | --------------- | ------------------------------ |
+| Auth         | `/auth`         | Authentication & authorization |
+| Users        | `/users`        | User management                |
+| Products     | `/products`     | Products, categories, fabrics  |
+| Orders       | `/orders`       | Order management & payments    |
+| Appointments | `/appointments` | Appointment booking            |
+| Admin        | `/admin`        | Admin dashboard & reports      |
 
-**Chức năng:**
+## 🔐 Authentication
 
-- ✅ Sign up / Sign in
-- ✅ JWT token generation & refresh
-- ✅ Role-based access control (RBAC)
-- ✅ Guards: `JwtAuthGuard`, `RolesGuard`
-- ✅ Decorators: `@CurrentUser()`, `@Roles()`
+API sử dụng **JWT Bearer Token** authentication.
 
-**Endpoints:**
+### Flow:
 
-- `POST /auth/sign-up` - Đăng ký tài khoản
-- `POST /auth/sign-in` - Đăng nhập
-- `POST /auth/refresh` - Refresh access token
-- `POST /auth/me` - Lấy thông tin user hiện tại
+1. **Sign up**: `POST /auth/sign-up`
+2. **Sign in**: `POST /auth/sign-in` → Nhận `accessToken`
+3. **Sử dụng token**: Thêm header `Authorization: Bearer <accessToken>`
 
-**Authentication Flow:**
+### Roles:
 
-1. User đăng ký: `POST /auth/sign-up`
-2. User đăng nhập: `POST /auth/sign-in` → Nhận `accessToken` & `refreshToken`
-3. Sử dụng token: Thêm header `Authorization: Bearer <accessToken>`
-4. Refresh khi hết hạn: `POST /auth/refresh`
+- **CUSTOMER**: Khách hàng (default)
+- **STAFF**: Nhân viên may
+- **ADMIN**: Quản trị viên
 
-**Roles hỗ trợ:**
+## 📧 Email Templates
 
-- `CUSTOMER`: Khách hàng (default)
-- `STAFF`: Nhân viên may
-- `ADMIN`: Quản trị viên
-
-### 📧 Notifications Module (Completed)
-
-**Chức năng:**
-
-- ✅ Gửi email thông báo tự động
-- ✅ React Email templates
-- ✅ Resend API integration
-- ✅ 4 loại email templates
-
-**Email Templates:**
-
-1. **Appointment Confirmed** - Xác nhận lịch hẹn
-2. **Appointment Cancelled** - Hủy lịch hẹn
-3. **Order Confirmed** - Xác nhận đơn hàng
-4. **Order Status Update** - Cập nhật trạng thái đơn hàng
-
-**Preview Email Templates:**
+Preview email templates với React Email:
 
 ```bash
 # Chạy email dev server
 pnpm run email:dev
 ```
 
-Truy cập `http://localhost:3000` để xem preview tất cả email templates.
+Truy cập `http://localhost:3000` để xem preview các email templates:
 
-### 🏗️ Core Infrastructure (Completed)
+- Appointment Confirmed
+- Appointment Cancelled
+- Order Confirmed
+- Order Status Update
 
-**Đã triển khai:**
+## 🧪 Testing
 
-- ✅ NestJS application setup với TypeScript
-- ✅ Prisma ORM với PostgreSQL
-- ✅ Redis caching service
-- ✅ Global exception filters
-- ✅ Logging interceptor
-- ✅ Response transformation interceptor
-- ✅ Validation pipes với class-validator
-- ✅ Swagger/OpenAPI documentation
-- ✅ CORS configuration
-- ✅ Environment configuration
+```bash
+# Unit tests
+pnpm run test
 
-## 🚧 Coming Soon
+# Test coverage
+pnpm run test:cov
 
-- 🚧 **Users Module** - Quản lý profile, địa chỉ, số đo
-- 🚧 **Products Module** - Sản phẩm, vải, style options
-- 🚧 **Orders Module** - Đơn hàng, thanh toán, reviews
-- 🚧 **Appointments Module** - Đặt lịch hẹn đo đạc
-- 🚧 **Admin Module** - Dashboard, reports, quản lý
+# Watch mode
+pnpm run test:watch
+
+# E2E tests
+pnpm run test:e2e
+```
 
 ## 🔧 Scripts & Commands
 
@@ -339,6 +315,220 @@ Truy cập `http://localhost:3000` để xem preview tất cả email templates.
 | -------------------- | ----------------------- |
 | `pnpm run email:dev` | Preview email templates |
 
+## 🗂️ Modules chi tiết
+
+### 🔐 Auth Module
+
+**Chức năng:**
+
+- Sign up / Sign in
+- JWT token generation & refresh
+- Role-based access control (RBAC)
+- Guards: `JwtAuthGuard`, `RolesGuard`
+
+**Endpoints:**
+
+- `POST /auth/sign-up` - Đăng ký
+- `POST /auth/sign-in` - Đăng nhập
+- `POST /auth/refresh` - Refresh token
+- `POST /auth/me` - Get current user
+
+### 👤 Users Module
+
+**Chức năng:**
+
+- Quản lý profile người dùng
+- Quản lý địa chỉ giao hàng
+- Quản lý số đo cơ thể
+- Admin: CRUD users
+
+**Endpoints:**
+
+- `GET /users/profile` - Get profile
+- `PUT /users/profile` - Update profile
+- `GET /users/addresses` - Get addresses
+- `POST /users/addresses` - Create address
+- `GET /users/measurements` - Get measurements
+- Admin: `GET /users`, `DELETE /users/:id`
+
+### 🛍️ Products Module
+
+**Chức năng:**
+
+- CRUD sản phẩm (Products)
+- Quản lý danh mục (Categories)
+- Quản lý vải (Fabrics)
+- Quản lý tùy chọn style (Style Options)
+- Gán vải & style options cho sản phẩm
+
+**Endpoints:**
+
+- `GET /products` - Get all products
+- `GET /products/search` - Search products
+- `POST /products` - Create product (Admin)
+- `GET /products/fabrics` - Get fabrics
+- `GET /products/style-options` - Get style options
+
+### 📦 Orders Module
+
+**Chức năng:**
+
+- Tạo đơn hàng mới
+- Theo dõi trạng thái đơn hàng
+- Quản lý thanh toán (COD, SEPAY)
+- Đánh giá (Reviews)
+- Admin: Quản lý tất cả đơn hàng
+
+**Order Status Flow:**
+
+```
+PENDING → CONFIRMED → MEASURING → IN_PRODUCTION →
+QUALITY_CHECK → READY_FOR_DELIVERY → DELIVERED
+```
+
+**Endpoints:**
+
+- `POST /orders` - Create order
+- `GET /orders` - Get user orders
+- `PUT /orders/:id/cancel` - Cancel order
+- Admin: `GET /orders/admin/all`, `PUT /orders/:id/status`
+- `POST /orders/:id/reviews` - Create review
+- `GET /orders/:id/payment` - Get payment
+
+### 📅 Appointments Module
+
+**Chức năng:**
+
+- Đặt lịch hẹn đo đạc
+- Xem time slots available
+- Quản lý trạng thái lịch hẹn
+- Staff assignment
+
+**Appointment Status:**
+
+- `PENDING`, `CONFIRMED`, `COMPLETED`, `CANCELLED`
+
+**Endpoints:**
+
+- `POST /appointments` - Create appointment
+- `GET /appointments/available-slots` - Get available slots
+- `PATCH /appointments/:id/status` - Update status (Staff/Admin)
+
+### 📊 Admin Module
+
+**Chức năng:**
+
+- Dashboard statistics
+- Recent orders & appointments
+- Revenue reports
+- Staff management & workload
+- Customer management
+
+**Endpoints:**
+
+- `GET /admin/dashboard` - Dashboard stats
+- `GET /admin/revenue` - Revenue report
+- `GET /admin/staff` - Staff members
+- `GET /admin/staff/workload` - Staff workload
+
+### 📧 Notifications Module
+
+**Chức năng:**
+
+- Gửi email thông báo tự động
+- React Email templates
+- Resend API integration
+
+**Email Types:**
+
+- Order Confirmation
+- Order Status Updates
+- Appointment Confirmation
+- Appointment Cancellation
+
+## 🏗️ Architecture Patterns
+
+### 1. Module-based Structure
+
+Mỗi feature được tổ chức thành module độc lập với:
+
+- Controller (HTTP layer)
+- Service (Business logic)
+- DTOs (Data Transfer Objects)
+- Guards & Decorators
+
+### 2. Dependency Injection
+
+NestJS DI container quản lý dependencies tự động.
+
+### 3. Guards & Interceptors
+
+- **JwtAuthGuard**: Xác thực JWT token
+- **RolesGuard**: Phân quyền theo role
+- **LoggingInterceptor**: Log requests
+- **TransformInterceptor**: Transform responses
+
+### 4. Exception Handling
+
+- Global exception filters
+- Custom error messages
+- Validation errors
+
+## 🔒 Security Best Practices
+
+- ✅ JWT với expiration
+- ✅ Password hashing (bcrypt)
+- ✅ CORS configuration
+- ✅ Input validation với class-validator
+- ✅ SQL injection prevention (Prisma)
+- ✅ Rate limiting (recommended for production)
+
+## 🚀 Deployment
+
+### Environment Variables (Production)
+
+Đảm bảo set các biến môi trường sau cho production:
+
+```env
+NODE_ENV=production
+DATABASE_URL="postgresql://..."
+JWT_SECRET="strong-random-secret"
+REDIS_URL="redis://..."
+RESEND_API_KEY="re_..."
+```
+
+### Build & Deploy
+
+```bash
+# Build
+pnpm run build
+
+# Run migrations
+pnpm run prisma:migrate:prod
+
+# Start
+pnpm run start:prod
+```
+
+### Docker Deployment (Optional)
+
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY package*.json ./
+EXPOSE 3001
+CMD ["node", "dist/main.js"]
+```
+
 ## 🐛 Troubleshooting
 
 ### Common Issues:
@@ -350,7 +540,6 @@ Truy cập `http://localhost:3000` để xem preview tất cả email templates.
 sudo service postgresql status
 
 # Kiểm tra connection string trong .env
-echo $DATABASE_URL
 ```
 
 **2. Prisma Client errors**
@@ -358,18 +547,12 @@ echo $DATABASE_URL
 ```bash
 # Re-generate Prisma Client
 pnpm run prisma:generate
-
-# Reset database (development only)
-pnpm run prisma:migrate:reset
 ```
 
 **3. Redis connection failed**
 
 ```bash
-# Redis là optional, có thể comment REDIS_URL trong .env nếu không dùng
-
-# Hoặc start Redis
-sudo service redis-server start
+# Redis là optional, có thể comment REDIS_URL trong .env
 ```
 
 **4. Build errors**
@@ -381,13 +564,6 @@ pnpm install
 pnpm run build
 ```
 
-**5. Email sending failed**
-
-```bash
-# Kiểm tra RESEND_API_KEY trong .env
-# Đăng ký tại https://resend.com để lấy API key
-```
-
 ## 📖 Documentation
 
 Tài liệu chi tiết trong folder `/docs`:
@@ -396,3 +572,45 @@ Tài liệu chi tiết trong folder `/docs`:
 - [Business Analysis](docs/business-analysis.md)
 - [Database Design](docs/database-design.md)
 - [Sequence Diagrams](docs/sequence-diagram.md)
+
+## 🤝 Contributing
+
+1. Fork repository
+2. Create feature branch: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -am 'Add feature'`
+4. Push to branch: `git push origin feature/your-feature`
+5. Submit Pull Request
+
+## 📝 Code Style
+
+Dự án sử dụng:
+
+- **ESLint**: Linting rules
+- **Prettier**: Code formatting
+- **TypeScript**: Strict mode
+
+Chạy trước khi commit:
+
+```bash
+pnpm run lint
+pnpm run format
+```
+
+## 📄 License
+
+Private project - All rights reserved
+
+## 👥 Team
+
+- Developer: [Quan Vo Dinh](https://github.com/Quan-Vo-Dinh)
+
+## 📞 Support
+
+For issues and questions:
+
+- GitHub Issues: [Create an issue](https://github.com/Quan-Vo-Dinh/custom-tailor-backend/issues)
+- Email: contact@example.com
+
+---
+
+**Made with ❤️ using NestJS**

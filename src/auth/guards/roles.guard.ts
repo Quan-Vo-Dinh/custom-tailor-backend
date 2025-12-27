@@ -22,13 +22,24 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const user = request.user as { id?: string; role?: Role } | undefined;
+
+    // Debug logging to trace role guard behavior
+    // eslint-disable-next-line no-console
+    console.log("[RolesGuard] canActivate", {
+      url: request.url,
+      requiredRoles,
+      hasUser: !!user,
+      userId: user?.id,
+      userRole: user?.role,
+    });
 
     if (!user) {
-      throw new ForbiddenException("User not found");
+      // User should always be set by JwtAuthGuard before RolesGuard
+      throw new ForbiddenException("Authentication required");
     }
 
-    if (!requiredRoles.includes(user.role)) {
+    if (!requiredRoles.includes(user.role as Role)) {
       throw new ForbiddenException(
         `User role '${user.role}' is not allowed to access this resource`
       );

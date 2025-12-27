@@ -159,9 +159,21 @@ export class AuthService {
   }
 
   async validateUser(userId: string) {
+    // Debug logging to help trace "User not found" issues
+    // eslint-disable-next-line no-console
+    console.log("[AuthService] validateUser called", { userId });
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { profile: true },
+    });
+
+    // eslint-disable-next-line no-console
+    console.log("[AuthService] validateUser result", {
+      found: !!user,
+      userId,
+      role: user?.role,
+      email: user?.email,
     });
 
     if (!user) {
@@ -169,5 +181,51 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return { message: "If email exists, password reset link has been sent" };
+    }
+
+    // TODO: Generate reset token and send email via Resend
+    // For now, just return success message
+    return { message: "If email exists, password reset link has been sent" };
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.passwordHash) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcryptjs.compare(
+      currentPassword,
+      user.passwordHash
+    );
+
+    if (!isPasswordValid) {
+      throw new BadRequestException("Current password is incorrect");
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcryptjs.hash(newPassword, 10);
+
+    // Update password
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newPasswordHash },
+    });
+
+    return { message: "Password changed successfully" };
   }
 }

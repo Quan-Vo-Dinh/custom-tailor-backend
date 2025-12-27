@@ -16,6 +16,8 @@ import {
 import { AuthService } from "./auth.service";
 import { SignUpDto } from "./dto/sign-up.dto";
 import { SignInDto } from "./dto/sign-in.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
 
@@ -146,5 +148,56 @@ export class AuthController {
   })
   async getCurrentUser(@CurrentUser() user: any) {
     return user;
+  }
+
+  @Post("forgot-password")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Request password reset",
+    description: "Send password reset link to user's email",
+  })
+  @ApiBody({ type: ForgotPasswordDto })
+  @ApiResponse({
+    status: 200,
+    description: "Password reset link sent (if email exists)",
+    schema: {
+      example: {
+        message: "If email exists, password reset link has been sent",
+      },
+    },
+  })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post("change-password")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Change password",
+    description: "Change user's password (requires current password)",
+  })
+  @ApiBody({ type: ChangePasswordDto })
+  @ApiResponse({
+    status: 200,
+    description: "Password changed successfully",
+    schema: {
+      example: {
+        message: "Password changed successfully",
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: "Current password is incorrect" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async changePassword(
+    @CurrentUser() user: any,
+    @Body() dto: ChangePasswordDto
+  ) {
+    return this.authService.changePassword(
+      user.id,
+      dto.currentPassword,
+      dto.newPassword
+    );
   }
 }

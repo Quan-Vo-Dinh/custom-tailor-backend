@@ -1,6 +1,8 @@
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe, BadRequestException } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import * as express from "express";
+import { join } from "path";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
@@ -53,18 +55,30 @@ async function bootstrap() {
 
   // Initialize CORS
   app.enableCors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:3000",
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   // Health check and root endpoints
   const expressApp = app.getHttpAdapter().getInstance();
-  
+
+  // Serve static files from /public folder (for product images)
+  // Using express.static directly to handle Vietnamese characters in filenames
+  const publicPath = join(process.cwd(), "public");
+  expressApp.use("/images", express.static(join(publicPath, "images")));
+  console.log(`Serving static files from: ${publicPath}`);
+
   // Root endpoint - redirect to API docs
   expressApp.get("/", (_req, res) => {
     res.redirect("/api/docs");
   });
-  
+
   // Health check endpoint
   expressApp.get("/health", (_req, res) => {
     res.status(200).json({

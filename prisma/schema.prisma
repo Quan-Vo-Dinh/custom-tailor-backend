@@ -134,6 +134,7 @@ model Product {
   basePrice   Decimal  @db.Decimal(10, 2)
   images      Json?    // Array of image URLs
   isPublished Boolean  @default(true)
+  featured    Boolean  @default(false) // For featured products
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -145,13 +146,18 @@ model Product {
 
   @@index([categoryId])
   @@index([isPublished])
+  @@index([featured])
 }
 
 model Fabric {
   id               String   @id @default(cuid())
   name             String   @unique
+  description      String?  // Description of the fabric
+  material         String?  // e.g., "100% Wool", "Cotton Blend"
+  color            String?  // Color name
   imageUrl         String?
   priceAdjustment  Decimal  @db.Decimal(10, 2) @default(0)
+  stock            Int?     // Stock quantity (optional)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -165,6 +171,8 @@ model StyleOption {
   id               String   @id @default(cuid())
   name             String
   type             String   // e.g., "Cổ áo", "Kiểu tay"
+  description      String?  // Description of the style option
+  imageUrl         String?  // Optional image for the style
   priceAdjustment  Decimal  @db.Decimal(10, 2) @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

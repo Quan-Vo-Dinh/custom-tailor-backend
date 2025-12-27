@@ -7,15 +7,25 @@ export class ProfileService {
   constructor(private prisma: PrismaService) {}
 
   async getProfileByUserId(userId: string) {
-    const profile = await this.prisma.profile.findUnique({
-      where: { userId },
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
     })
 
-    if (!profile) {
+    if (!user || !user.profile) {
       throw new NotFoundException("Profile not found")
     }
 
-    return profile
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      profile: {
+        fullName: user.profile.fullName,
+        phone: user.profile.phone,
+        avatarUrl: user.profile.avatarUrl,
+      },
+    }
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
@@ -27,15 +37,51 @@ export class ProfileService {
       throw new NotFoundException("Profile not found")
     }
 
-    const updatedProfile = await this.prisma.profile.update({
+    await this.prisma.profile.update({
       where: { userId },
       data: {
-        fullName: dto.fullName || profile.fullName,
-        phone: dto.phone !== undefined ? dto.phone : profile.phone,
-        avatarUrl: dto.avatarUrl !== undefined ? dto.avatarUrl : profile.avatarUrl,
+        fullName: dto.fullName ?? profile.fullName,
+        phone: dto.phone ?? profile.phone,
+        avatarUrl: dto.avatarUrl ?? profile.avatarUrl,
       },
     })
 
-    return updatedProfile
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
+    })
+
+    return {
+      id: user?.id,
+      email: user?.email,
+      role: user?.role,
+      profile: {
+        fullName: user?.profile?.fullName,
+        phone: user?.profile?.phone,
+        avatarUrl: user?.profile?.avatarUrl,
+      },
+    }
+  }
+
+  async getUserStats(userId: string) {
+    const [totalOrders, totalAppointments, savedMeasurements, savedAddresses] = await Promise.all([
+      this.prisma.order.count({ where: { userId } }),
+      this.prisma.appointment.count({ where: { userId } }),
+      this.prisma.measurement.count({ where: { userId } }),
+      this.prisma.address.count({ where: { userId } }),
+    ])
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
+    })
+
+    return {
+      totalOrders,
+      totalAppointments,
+      savedMeasurements,
+      savedAddresses,
+      memberSince: user?.createdAt,
+    }
   }
 }

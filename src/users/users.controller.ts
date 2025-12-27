@@ -70,6 +70,29 @@ export class UsersController {
     return this.profileService.getProfileByUserId(user.id);
   }
 
+  @Get("profile/stats")
+  @ApiOperation({
+    summary: "Get user statistics",
+    description:
+      "Retrieve user statistics (orders, appointments, measurements, addresses)",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "User statistics",
+    schema: {
+      example: {
+        totalOrders: 5,
+        totalAppointments: 3,
+        savedMeasurements: 2,
+        savedAddresses: 1,
+        memberSince: "2024-01-15T10:00:00.000Z",
+      },
+    },
+  })
+  async getUserStats(@CurrentUser() user: any) {
+    return this.profileService.getUserStats(user.id);
+  }
+
   @Put("profile")
   @ApiOperation({
     summary: "Update current user profile",
@@ -268,6 +291,136 @@ export class UsersController {
     return this.measurementService.deleteMeasurement(user.id, measurementId);
   }
 
+  // ==================== ADMIN MEASUREMENT ENDPOINTS ====================
+
+  @Get("admin/measurements")
+  @Roles(Role.ADMIN, Role.STAFF)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Get all measurements (Admin/Staff only)",
+    description: "Retrieve paginated list of all customer measurements",
+  })
+  @ApiQuery({ name: "page", required: false, example: 1 })
+  @ApiQuery({ name: "limit", required: false, example: 10 })
+  @ApiQuery({
+    name: "search",
+    required: false,
+    description: "Search by name, email",
+  })
+  @ApiQuery({
+    name: "userId",
+    required: false,
+    description: "Filter by user ID",
+  })
+  @ApiResponse({ status: 200, description: "Paginated list of measurements" })
+  async getAllMeasurementsAdmin(
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+    @Query("search") search?: string,
+    @Query("userId") userId?: string
+  ) {
+    return this.measurementService.getAllMeasurementsPaginated(
+      Number.parseInt(page || "1"),
+      Number.parseInt(limit || "10"),
+      search,
+      userId
+    );
+  }
+
+  @Get("admin/measurements/stats")
+  @Roles(Role.ADMIN, Role.STAFF)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Get measurement statistics (Admin/Staff only)",
+    description: "Retrieve statistics about measurements",
+  })
+  @ApiResponse({ status: 200, description: "Measurement statistics" })
+  async getMeasurementStats() {
+    return this.measurementService.getMeasurementStats();
+  }
+
+  @Get("admin/measurements/:measurementId")
+  @Roles(Role.ADMIN, Role.STAFF)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Get measurement by ID (Admin/Staff only)",
+    description: "Retrieve detailed measurement information",
+  })
+  @ApiParam({ name: "measurementId", description: "Measurement ID" })
+  @ApiResponse({ status: 200, description: "Measurement details" })
+  @ApiResponse({ status: 404, description: "Measurement not found" })
+  async getMeasurementByIdAdmin(@Param("measurementId") measurementId: string) {
+    return this.measurementService.getMeasurementByIdAdmin(measurementId);
+  }
+
+  @Get("admin/users/:userId/measurements")
+  @Roles(Role.ADMIN, Role.STAFF)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Get measurements by user ID (Admin/Staff only)",
+    description: "Retrieve all measurements for a specific user",
+  })
+  @ApiParam({ name: "userId", description: "User ID" })
+  @ApiResponse({ status: 200, description: "User measurements" })
+  @ApiResponse({ status: 404, description: "User not found" })
+  async getMeasurementsByUserIdAdmin(@Param("userId") userId: string) {
+    return this.measurementService.getMeasurementsByUserIdAdmin(userId);
+  }
+
+  @Post("admin/users/:userId/measurements")
+  @Roles(Role.ADMIN, Role.STAFF)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: "Create measurement for user (Admin/Staff only)",
+    description: "Create a new measurement for a specific user",
+  })
+  @ApiParam({ name: "userId", description: "User ID" })
+  @ApiBody({ type: CreateMeasurementDto })
+  @ApiResponse({ status: 201, description: "Measurement created" })
+  @ApiResponse({ status: 404, description: "User not found" })
+  async createMeasurementAdmin(
+    @Param("userId") userId: string,
+    @Body() dto: CreateMeasurementDto
+  ) {
+    return this.measurementService.createMeasurementAdmin(userId, dto);
+  }
+
+  @Put("admin/measurements/:measurementId")
+  @Roles(Role.ADMIN, Role.STAFF)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Update measurement (Admin/Staff only)",
+    description: "Update an existing measurement",
+  })
+  @ApiParam({ name: "measurementId", description: "Measurement ID" })
+  @ApiBody({ type: UpdateMeasurementDto })
+  @ApiResponse({ status: 200, description: "Measurement updated" })
+  @ApiResponse({ status: 404, description: "Measurement not found" })
+  async updateMeasurementAdmin(
+    @Param("measurementId") measurementId: string,
+    @Body() dto: UpdateMeasurementDto
+  ) {
+    return this.measurementService.updateMeasurementAdmin(measurementId, dto);
+  }
+
+  @Delete("admin/measurements/:measurementId")
+  @Roles(Role.ADMIN, Role.STAFF)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "Delete measurement (Admin/Staff only)",
+    description: "Delete a measurement",
+  })
+  @ApiParam({ name: "measurementId", description: "Measurement ID" })
+  @ApiResponse({ status: 204, description: "Measurement deleted" })
+  @ApiResponse({ status: 404, description: "Measurement not found" })
+  async deleteMeasurementAdmin(@Param("measurementId") measurementId: string) {
+    return this.measurementService.deleteMeasurementAdmin(measurementId);
+  }
+
+  // ==================== ADMIN USER ENDPOINTS ====================
+
   // Admin endpoints
   @Get()
   @Roles(Role.ADMIN)
@@ -277,34 +430,47 @@ export class UsersController {
     description: "Retrieve paginated list of all users (Admin access required)",
   })
   @ApiQuery({
-    name: "skip",
+    name: "page",
     required: false,
-    description: "Number of records to skip",
-    example: 0,
+    description: "Page number (1-based)",
+    example: 1,
   })
   @ApiQuery({
-    name: "take",
+    name: "limit",
     required: false,
-    description: "Number of records to take",
+    description: "Number of records per page",
     example: 10,
+  })
+  @ApiQuery({
+    name: "role",
+    required: false,
+    description: "Filter by role (CUSTOMER, STAFF, ADMIN)",
+  })
+  @ApiQuery({
+    name: "search",
+    required: false,
+    description: "Search by email, name, or phone",
   })
   @ApiResponse({
     status: 200,
     description: "Paginated list of users",
     schema: {
       example: {
-        data: [
+        users: [
           {
             id: "user_123",
             email: "user@example.com",
-            fullName: "John Doe",
+            name: "John Doe",
             role: "CUSTOMER",
             createdAt: "2025-11-12T10:00:00.000Z",
           },
         ],
-        total: 100,
-        skip: 0,
-        take: 10,
+        pagination: {
+          currentPage: 1,
+          totalPages: 10,
+          totalItems: 100,
+          itemsPerPage: 10,
+        },
       },
     },
   })
@@ -313,13 +479,16 @@ export class UsersController {
     description: "Forbidden - Admin access required",
   })
   async getAllUsers(
-    @Query("skip") skip?: string,
-    @Query("take") take?: string
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+    @Query("role") role?: string,
+    @Query("search") search?: string
   ) {
-    return this.usersService.getAllUsers(
-      Number.parseInt(skip) || 0,
-      Number.parseInt(take) || 10
-    );
+    const pageNum = Number.parseInt(page || "1");
+    const limitNum = Number.parseInt(limit || "10");
+    const skip = (pageNum - 1) * limitNum;
+
+    return this.usersService.getAllUsers(skip, limitNum, role, search);
   }
 
   @Get(":userId")

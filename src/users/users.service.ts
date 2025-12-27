@@ -24,23 +24,70 @@ export class UsersService {
     return userWithoutPassword;
   }
 
-  async getAllUsers(skip = 0, take = 10) {
-    const users = await this.prisma.user.findMany({
-      skip,
-      take,
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-        profile: true,
+  async getAllUsers(skip = 0, take = 10, role?: string, search?: string) {
+    const where: any = {};
+
+    // Role filter
+    if (role) {
+      where.role = role;
+    }
+
+    // Search filter (by email or profile name/phone)
+    if (search) {
+      where.OR = [
+        { email: { contains: search, mode: "insensitive" } },
+        {
+          profile: {
+            OR: [
+              { fullName: { contains: search, mode: "insensitive" } },
+              { phone: { contains: search, mode: "insensitive" } },
+            ],
+          },
+        },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take,
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+          profile: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    // Map to frontend-expected format
+    const mappedUsers = users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      role: u.role,
+      name: u.profile?.fullName || u.email?.split("@")[0],
+      phone: u.profile?.phone || null,
+      avatar: u.profile?.avatarUrl || null,
+      createdAt: u.createdAt,
+      updatedAt: u.updatedAt,
+    }));
+
+    const page = Math.floor(skip / take) + 1;
+
+    return {
+      users: mappedUsers,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / take),
+        totalItems: total,
+        itemsPerPage: take,
       },
-    });
-
-    const total = await this.prisma.user.count();
-
-    return { data: users, total, skip, take };
+    };
   }
 
   async updateUser(userId: string, data: any) {
